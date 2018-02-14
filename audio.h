@@ -1,5 +1,5 @@
 /*************************************************
- * Public Constants
+ * Pitches
  *************************************************/
 
 #define NOTE_B0  31
@@ -91,3 +91,17 @@
 #define NOTE_CS8 4435
 #define NOTE_D8  4699
 #define NOTE_DS8 4978
+
+int speakerOut = 11;
+int keyTone = NOTE_A5;
+int keyToneDuration = 80;
+
+int correctCommandTone = NOTE_C5;
+int incorrectCommandTone = NOTE_C3;
+int commandToneDuration = 400;
+int commandToneDelay = 5;
+
+void PlayTone (int pitch, int duration)
+{
+  tone(speakerOut, pitch, duration);
+}
