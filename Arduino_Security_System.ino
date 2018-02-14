@@ -11,11 +11,34 @@ const char changePinCommand[commandLength] = {
 };
 String enteredCommandString = "";
 const int commandTimeout = 5000;
-int commandStart;
+unsigned long commandStart;
 
 #include "audio.h"
 #include "serial.h"
 #include "keypad.h"
+
+void SetCursor (int x, int y)
+{
+  SetCursorX(x);
+  SetCursorY(y);
+}
+
+void SetCursorX (int x)
+{
+  x = constrain(x, 0, 15);
+  Serial.print(char(x + 15));
+}
+
+void SetCursorY (int y)
+{
+  y = constrain(y, 0, 1);
+  Serial.print(char(y + 1));
+}
+
+void ClearDisplay ()
+{
+  Serial.print(char(3));
+}
 
 void setup()
 {
@@ -24,23 +47,18 @@ void setup()
   {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-  Serial.println("Security System Booted...");
-  PrintHelp();
+  ClearDisplay();
+  Serial.print("System Online...\n");
+//  PrintHelp();
 }
 
 void loop()
 {
   SerialRead();
   char key = GetKey();
-  
-  if (key)
-  {
-    Serial.println(key);
-  }
 
   if(key == commandChar)
   {
-    Serial.print("Command Entered: ");
     commandStart = millis();
     bool checkedCommand = false;
     enteredCommandString = "";
@@ -53,9 +71,7 @@ void loop()
       {
         if(key)
         {
-//          enteredCommand[charIndex] = key;
           enteredCommandString += key;
-          Serial.print(key);
           charIndex++;
           delay(5);
         }
@@ -63,18 +79,20 @@ void loop()
       else if(!checkedCommand)
       {
         checkedCommand = true;
-        Serial.println("");
         if(enteredCommandString == String(changePinCommand))
         {
             delay(keyToneDuration + commandToneDelay);
             PlayTone(correctCommandTone, commandToneDuration);
-            Serial.println("Change Pin Command");
+            ClearDisplay();
+            Serial.print("Change PIN?\n");
+            Serial.print("A To Confirm\n");
         }
         else
         {
           delay(keyToneDuration + commandToneDelay);
           PlayTone(incorrectCommandTone, commandToneDuration);
-          Serial.println("Invalid Command");
+          ClearDisplay();
+          Serial.print("Invalid Command!\n");
         }
         break;
       }
