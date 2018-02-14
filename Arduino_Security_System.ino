@@ -17,33 +17,46 @@ byte colPins[COLS] = {5, 4, 3, 2}; //connect to the column pinouts of the keypad
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
 
-const int pinLength = 4; //PIN Length (4 char)
+const byte pinLength = 4; //PIN Length (4 char)
 char pin[pinLength] = {
   '1', '2', '3', '4'
 };
 char enteredPin[pinLength];
 
 const char commandChar = '*';
-const int commandLength = 2; //Command Sequence Length (2 char)
+const byte commandLength = 2; //Command Sequence Length (2 char)
 const char changePinCommand[commandLength] = {
   '2', '3'
 };
-char enteredCommand[commandLength];
+//char enteredCommand[commandLength];
+String enteredCommandString = "";
 const int commandTimeout = 5000;
 int commandStart;
 
 #include "pitches.h"
 int speakerOut = 11;
-int keyTone = NOTE_C4;
-int keyToneDuration = 100;
-String inString = "";
+int keyTone = NOTE_A5;
+int keyToneDuration = 80;
+
+int correctCommandTone = NOTE_C5;
+int incorrectCommandTone = NOTE_C3;
+int commandToneDuration = 400;
+int commandToneDelay = 5;
+int serialToneSelect;
+String serialIn = "";
+int serialInInt;
+
+void PlayTone (int pitch, int duration)
+{
+  tone(speakerOut, pitch, duration);
+}
 
 char GetKey ()
 {
   char key = keypad.getKey();
   if(key)
   {
-    tone(speakerOut, keyTone, keyToneDuration);
+    PlayTone(keyTone, keyToneDuration);
   }
   return key;
 }
@@ -55,13 +68,46 @@ void SetPitch ()
     int inChar = Serial.read();
     if (isDigit(inChar))
     {
-      // convert the incoming byte to a char and add it to the string:
-      inString += (char)inChar;
+      serialIn += (char)inChar;
     }
-    // if you get a newline, print the string, then the string's value:
-    if (inChar == '\n')
+    else if (inChar == '\n')
     {
-      keyTone = inString.toInt();
+      if(serialIn.length() > 0)
+      {
+        serialInInt = serialIn.toInt();
+        Serial.println("");
+        switch (serialToneSelect)
+        {
+          default:
+          case 'k':
+          Serial.print("Changed the Key Press tone from ");
+          Serial.print(keyTone);
+          PlayTone(serialInInt, keyToneDuration);
+          keyTone = serialInInt;
+          break;
+          case 'c':
+          Serial.print("Changed the Correct Command entered tone from ");
+          Serial.print(correctCommandTone);
+          PlayTone(serialInInt, commandToneDuration);
+          correctCommandTone = serialInInt;
+          break;
+          case 'i':
+          Serial.print("Changed the Incorrect Command entered tone from ");
+          Serial.print(incorrectCommandTone);
+          PlayTone(serialInInt, commandToneDuration);
+          incorrectCommandTone = serialInInt;
+          break;
+        }
+        
+        Serial.print(" to ");
+        Serial.println(serialInInt);
+      }
+      
+      serialIn = "";
+    }
+    else
+    {
+      serialToneSelect = inChar;
     }
   }
 }
@@ -73,6 +119,11 @@ void setup()
   {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+  Serial.println("Security System Booted...");
+  Serial.println("Valid Commands Are:");
+  Serial.print("*");
+  Serial.print(String(changePinCommand));
+  Serial.println(" - Change Pin");
 }
 
 void loop()
@@ -90,6 +141,7 @@ void loop()
     Serial.print("Command Entered: ");
     commandStart = millis();
     bool checkedCommand = false;
+    enteredCommandString = "";
     int charIndex = 0;
     
     while (millis() < commandStart + commandTimeout)
@@ -99,23 +151,36 @@ void loop()
       {
         if(key)
         {
+//          enteredCommand[charIndex] = key;
+          enteredCommandString += key;
           Serial.print(key);
-          enteredPin[charIndex] = key;
           charIndex++;
+          delay(5);
         }
       }
       else if(!checkedCommand)
       {
         checkedCommand = true;
         Serial.println("");
-        Serial.print("Entered Command: ");
-        Serial.println(String(enteredPin));
-        if(enteredPin == changePinCommand)
+//        Serial.println(enteredCommandString);
+//        Serial.print("Entered Command: ");
+//        Serial.println(String(enteredCommand));
+        if(enteredCommandString == String(changePinCommand))
         {
-            checkedCommand = true;
+            delay(keyToneDuration + commandToneDelay);
+            PlayTone(correctCommandTone, commandToneDuration);
             Serial.println("Change Pin Command");
         }
+        else
+        {
+          delay(keyToneDuration + commandToneDelay);
+          PlayTone(incorrectCommandTone, commandToneDuration);
+          Serial.println("Invalid Command");
+        }
+        break;
       }
+      
+      delay(1);
     }
     
   }
