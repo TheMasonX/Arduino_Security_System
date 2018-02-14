@@ -21,7 +21,7 @@ char GetKey ()
   char key = keypad.getKey();
   if(key)
   {
-    PlayTone(keyTone, keyToneDuration);
+    PlayTone(keyTone);
   }
   return key;
 }

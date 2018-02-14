@@ -1,6 +1,8 @@
 int serialToneSelect;
 String serialIn = "";
 int serialInInt;
+int helpWait = 3000;
+bool helpDisplayed = false;
 
 void SerialRead ()
 {
@@ -22,21 +24,21 @@ void SerialRead ()
           default:
           case 'k':
           Serial.print("Changed the Key Press tone from ");
-          Serial.print(keyTone);
-          PlayTone(serialInInt, keyToneDuration);
-          keyTone = serialInInt;
+          Serial.print(keyTone.pitch);
+          keyTone.pitch = serialInInt;
+          PlayTone(keyTone);
           break;
           case 'c':
           Serial.print("Changed the Correct Command entered tone from ");
-          Serial.print(correctCommandTone);
-          PlayTone(serialInInt, commandToneDuration);
-          correctCommandTone = serialInInt;
+          Serial.print(correctCommandTone.pitch);
+          correctCommandTone.pitch = serialInInt;
+          PlayTone(correctCommandTone);
           break;
           case 'i':
           Serial.print("Changed the Incorrect Command entered tone from ");
-          Serial.print(incorrectCommandTone);
-          PlayTone(serialInInt, commandToneDuration);
-          incorrectCommandTone = serialInInt;
+          Serial.print(incorrectCommandTone.pitch);
+          incorrectCommandTone.pitch = serialInInt;
+          PlayTone(incorrectCommandTone);
           break;
         }
         
@@ -53,12 +55,25 @@ void SerialRead ()
   }
 }
 
+void PrintCommand (String command, String description)
+{
+  Serial.print("*");
+  Serial.print(command + " ");
+  Serial.print(description + "\n");
+}
+
 void PrintHelp ()
 {
-  Serial.println("Valid Commands Are:");
-  Serial.print("*");
-  Serial.print(String(changePinCommand));
-  Serial.println(" - Change Pin");
-  Serial.println("");
+  helpDisplayed = true;
+  ClearDisplay();
+  Serial.print("Commands Are:\n");
+  PrintCommand(changePinCommand, "Change Pin");
+  delay(helpWait);
+  ClearDisplay();
+  PrintCommand(armCommand, "Arm");
+  PrintCommand(disarmCommand, "Disarm");
+  delay(helpWait);
+  ClearDisplay();
+  helpDisplayed = false;
 }
 

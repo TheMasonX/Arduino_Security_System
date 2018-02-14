@@ -2,6 +2,16 @@
 
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
+byte filled[8] = {
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+};
+
 void ReadSerial ()
 {
   if (Serial.available())
@@ -42,6 +52,18 @@ void ReadSerial ()
         delay(10);
         lcd.setCursor(x,y);
       }
+      else if (inChar == 4)
+      {
+        lcd.scrollDisplayLeft();
+      }
+      else if (inChar == 5)
+      {
+        lcd.scrollDisplayRight();
+      }
+      else if (inChar == 6)
+      {
+        lcd.write(byte(0));
+      }
       else
       {
         // display each character to the LCD
@@ -56,8 +78,8 @@ void setup()
 {
   lcd.begin(16, 2);
   lcd.setCursor(0,0);
-//  lcd.print("Hello, world!");
   Serial.begin(9600);
+  lcd.createChar(0, filled);
 }
 
 void loop()

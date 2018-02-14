@@ -92,16 +92,23 @@
 #define NOTE_D8  4699
 #define NOTE_DS8 4978
 
-int speakerOut = 11;
-int keyTone = NOTE_A5;
-int keyToneDuration = 80;
+struct Tone 
+{
+  int pitch;
+  int duration;
+};
 
-int correctCommandTone = NOTE_C5;
-int incorrectCommandTone = NOTE_C3;
-int commandToneDuration = 400;
+int speakerOut = 11;
+Tone keyTone = { NOTE_A5, 80 };
+
+Tone correctPinTone = { NOTE_C6, 500 };
+Tone incorrectPinTone = { NOTE_C3, 500 };
+
+Tone correctCommandTone = { NOTE_C6, 500 };
+Tone incorrectCommandTone = { NOTE_C3, 500 };
 int commandToneDelay = 5;
 
-void PlayTone (int pitch, int duration)
+void PlayTone (Tone t)
 {
-  tone(speakerOut, pitch, duration);
+  tone(speakerOut, t.pitch, t.duration);
 }
