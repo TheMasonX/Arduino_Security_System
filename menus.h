@@ -3,6 +3,10 @@ unsigned long commandStart;
 
 const int pinTimeout = 15000;
 unsigned long pinStart;
+
+const int valEnterTimeout = 15000;
+unsigned long valEnterStart;
+
 const int notificationDelay = 2000;
 
 int helpWait = 3000;
@@ -19,6 +23,21 @@ void MainDisplay ()
   }
 }
 
+void DebugDisplay ()
+{
+  helpDisplayed = true;
+  ClearDisplay();
+  if(lightLevel < lightSensitivity)
+  {
+    Print((lightLevel < lightSensitivity) ? "Dark: " : "Light: ");
+    Println(String(lightLevel) + "                 ");
+  }
+  delay(helpWait);
+  
+  ClearDisplay();
+  helpDisplayed = false;
+}
+
 void PrintCommand (String command, String description)
 {
   Println("*" + command + " " + description);
@@ -31,10 +50,17 @@ void PrintHelp ()
   Println("Commands Are:");
   PrintCommand(changePinCommand, "Change Pin");
   delay(helpWait);
+  
   ClearDisplay();
   PrintCommand(armCommand, "Arm");
   PrintCommand(disarmCommand, "Disarm");
   delay(helpWait);
+  
+  ClearDisplay();
+  PrintCommand(lightSensitivityCommand, "Light Sens.");
+  PrintCommand(lightLevelCommand, "Light Level");
+  delay(helpWait);
+  
   ClearDisplay();
   helpDisplayed = false;
 }
@@ -174,8 +200,8 @@ void ChangePin ()
   ClearDisplay();
   Println("Change PIN?");
   Println("A To Continue...");
-  pinStart = millis();
-  while (millis() - pinStart < pinTimeout)
+  commandStart = millis();
+  while (millis() - commandStart < commandTimeout)
   {
     char key = GetKey();
     if(key)
@@ -206,7 +232,87 @@ void ChangePin ()
       }
     }
   }
+}
+
+int GetValue (int valueLength, int minValue, int maxValue)
+{
+  SetCursor(0,1);
+  Println("New:               ");
+  valEnterStart = millis();
+  int digitIndex = 0;
+  int value = 0;
+  while (millis() - valEnterStart < valEnterTimeout)
+  {
+    char key = GetKey();
+    if(digitIndex < valueLength)
+    {
+      if(key)
+      {
+        if(isDigit(key))
+        {
+          value *= 10;
+          value += String(key).toInt();
+          SetCursor(0,1);
+          Println("New: " + String(value) + "               ");
+          digitIndex++;
+        }
+        else if(key == '#')
+        {
+          digitIndex = 100;
+        }
+      }
+    }
+    else
+    {
+      break;
+    }
+  }
   
+  if(digitIndex == 0)
+  {
+    return minValue - 1;
+  }
+  
+  value = constrain(value, minValue, maxValue);
+  SetCursor(0,1);
+  Print("New: " + String(value) + "             ");
+  delay(keyTone.duration + commandToneDelay);
+  PlayTone(correctCommandTone);
+  return value;
+}
+
+void ChangeLightSensitivity ()
+{
+  PlayTone(correctCommandTone);
+  ClearDisplay();
+  Println("Changing Light");
+  Println("Sensitivity...");
+  delay(notificationDelay / 2);
+
+  ClearDisplay();
+  Println("Current: " + String(lightSensitivity));
+  int newVal = GetValue (4, 0, 1023);
+  if(newVal > 0)
+  {
+    lightSensitivity = newVal;
+    ClearDisplay();
+    delay(1);
+    SetCursor(0,0);
+    Println("New Light Sens:");
+    Println(String(lightSensitivity) + "          ");
+    delay(notificationDelay);
+  }
+}
+
+void DisplayLightLevel ()
+{
+  PlayTone(correctCommandTone);
+  displayLightLevel = !displayLightLevel;
+  ClearDisplay();
+//Println("123456789012345");
+  Println("Light Level:");
+  Println((displayLightLevel ? "Displayed" : "Hidden"));
+  delay(notificationDelay);
 }
 
 void CommandEnter ()
@@ -249,6 +355,14 @@ void CommandEnter ()
       else if(enteredCommandString == disarmCommand)
       {
           Disarm();
+      }
+      else if(enteredCommandString == lightSensitivityCommand)
+      {
+          ChangeLightSensitivity();
+      }
+      else if(enteredCommandString == lightLevelCommand)
+      {
+          DisplayLightLevel();
       }
       else
       {

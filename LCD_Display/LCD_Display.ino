@@ -50,6 +50,8 @@ void ReadSerial ()
       {
         lcd.clear(); // clear the screen
         delay(10);
+        x = 0;
+        y = 0;
         lcd.setCursor(x,y);
       }
       else if (inChar == 4)

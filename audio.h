@@ -108,6 +108,8 @@ Tone correctCommandTone = { NOTE_C6, 500 };
 Tone incorrectCommandTone = { NOTE_C3, 500 };
 int commandToneDelay = 5;
 
+Tone alarmTone = { NOTE_A6, 1500 };
+
 void PlayTone (Tone t)
 {
   tone(speakerOut, t.pitch, t.duration);
