@@ -35,3 +35,24 @@ void PrintBlock ()
 {
   Serial.print(char(6));
 }
+
+void Print (String text)
+{
+  Serial.print(text);
+}
+
+void Print (char text)
+{
+  Print(String(text));
+}
+
+void Println (String text)
+{
+  Print(text + "\n");
+}
+
+void Println (char text)
+{
+  Println(String(text));
+}
+

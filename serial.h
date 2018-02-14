@@ -1,8 +1,6 @@
 int serialToneSelect;
 String serialIn = "";
 int serialInInt;
-int helpWait = 3000;
-bool helpDisplayed = false;
 
 void SerialRead ()
 {
@@ -53,27 +51,5 @@ void SerialRead ()
       serialToneSelect = inChar;
     }
   }
-}
-
-void PrintCommand (String command, String description)
-{
-  Serial.print("*");
-  Serial.print(command + " ");
-  Serial.print(description + "\n");
-}
-
-void PrintHelp ()
-{
-  helpDisplayed = true;
-  ClearDisplay();
-  Serial.print("Commands Are:\n");
-  PrintCommand(changePinCommand, "Change Pin");
-  delay(helpWait);
-  ClearDisplay();
-  PrintCommand(armCommand, "Arm");
-  PrintCommand(disarmCommand, "Disarm");
-  delay(helpWait);
-  ClearDisplay();
-  helpDisplayed = false;
 }
 
